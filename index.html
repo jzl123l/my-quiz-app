@@ -259,4 +259,400 @@ const DEFAULT_BANK = [
 
 {id:56,sec:'V. 日常对话',type:'choice',passage:"Nick: Hi, Ryan. Do you know when the test results will come out?\nRyan: 56\nNick: I'm anxious to see how I did. 57\nRyan: I'm not that nervous. 58\nNick: I think most of the test was pretty easy, but some of the questions were tricky.\nRyan: 59 That won't do you any good.\nNick: How could you stay so calm all the time?\nRyan: 60\nNick: You're lucky. I worry all the time.",stem:'56. Ryan: ____',options:["You'd better prepare for the test.","Try not to worry about it too much.","The professor didn't blame you.","I have no idea.","I don't think the test was hard.","It's just who I am.","I barely finished the test in time.","I need to study harder."],answer:3,analysis:'答案 D。I have no idea.'},
 {id:57,sec:'V. 日常对话',type:'choice',stem:"57. Nick: I'm anxious to see how I did. ____",options:["You'd better prepare for the test.","Try not to worry about it too much.","The professor didn't blame you.","I have no idea.","I don't think the test was hard.","It's just who I am.","I barely finished the test in time.","I need to study harder."],answer:6,analysis:'答案 G。I barely finished the test in time.'},
-{id:58,se
+{id:58,sec:'V. 日常对话',type:'choice',stem:"58. Ryan: I'm not that nervous. ____",options:["You'd better prepare for the test.","Try not to worry about it too much.","The professor didn't blame you.","I have no idea.","I don't think the test was hard.","It's just who I am.","I barely finished the test in time.","I need to study harder."],answer:4,analysis:"答案 E。I don't think the test was hard."},
+{id:59,sec:'V. 日常对话',type:'choice',stem:"59. Ryan: ____ That won't do you any good.",options:["You'd better prepare for the test.","Try not to worry about it too much.","The professor didn't blame you.","I have no idea.","I don't think the test was hard.","It's just who I am.","I barely finished the test in time.","I need to study harder."],answer:1,analysis:'答案 B。Try not to worry about it too much.'},
+{id:60,sec:'V. 日常对话',type:'choice',stem:'60. Ryan: ____',options:["You'd better prepare for the test.","Try not to worry about it too much.","The professor didn't blame you.","I have no idea.","I don't think the test was hard.","It's just who I am.","I barely finished the test in time.","I need to study harder."],answer:5,analysis:"答案 F。It's just who I am."},
+
+{id:61,sec:'VI. 写作',type:'writing',prompt:"学生会打算举办一场旧书交换活动。请你给全校同学写一份通知，内容包括：\n- 旧书交换的好处(如培养节约习惯、增强环保意识等)；\n- 旧书交换活动的时间及地点；\n- 可以交换的旧书类别(如课本、小说等)；\n- 号召大家积极参与。",analysis:"参考范文：\n\nNotice\nDear fellow students,\nThe Student Union is going to hold a second-hand book exchange activity. It will be held in the school hall from 2:00 p.m. to 5:00 p.m. next Friday.\nThis activity is meaningful. It can help us develop the habit of saving and raise our environmental awareness. You can exchange textbooks, novels, magazines and other books you no longer need.\nPlease bring your old books and join us. Let's share books and make friends.\nThe Student Union"}
+];
+
+/* ===================== 状态 ===================== */
+let BANK = [];
+let QMAP = {};
+let wrongBook = new Set();
+let state = {mode:'order', list:[], idx:0, answers:{}, submitted:{}, active:false};
+
+const $ = id => document.getElementById(id);
+const LS_BANK = 'eng_bank_v3';
+const LS_WRONG = 'eng_wrong_v3';
+const LS_STATE = 'eng_state_v3';
+
+/* ===================== 工具 ===================== */
+function escapeHtml(s){
+  if(s === undefined || s === null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function shuffle(a){
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ===================== 加载 / 保存 ===================== */
+function rebuildKeys(){
+  QMAP = {};
+  const seen = {};
+  BANK.forEach(q => {
+    const base = (q.sec || '') + '||' + q.id;
+    let k = base;
+    if(seen[k]){ seen[base]++; k = base + '_' + seen[base]; }
+    else { seen[base] = 1; }
+    q._key = k;
+    QMAP[k] = q;
+  });
+}
+function attachPassages(){
+  let lastSec = null, lastPassage = '';
+  BANK.forEach(q => {
+    if(q.sec !== lastSec){
+      lastSec = q.sec;
+      lastPassage = q.passage || '';
+    } else if(q.passage){
+      lastPassage = q.passage;
+    }
+    q._passage = q.passage || lastPassage || '';
+  });
+}
+function saveBank(){
+  const clean = BANK.map(q => {
+    const c = Object.assign({}, q);
+    delete c._key; delete c._passage;
+    return c;
+  });
+  localStorage.setItem(LS_BANK, JSON.stringify(clean));
+}
+function saveWrong(){ localStorage.setItem(LS_WRONG, JSON.stringify([...wrongBook])); }
+function saveState(){ localStorage.setItem(LS_STATE, JSON.stringify(state)); }
+
+function loadAll(){
+  const saved = localStorage.getItem(LS_BANK);
+  BANK = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_BANK));
+  rebuildKeys();
+  attachPassages();
+  try { wrongBook = new Set(JSON.parse(localStorage.getItem(LS_WRONG) || '[]')); }
+  catch(e){ wrongBook = new Set(); }
+  try {
+    const s = localStorage.getItem(LS_STATE);
+    if(s) state = JSON.parse(s);
+  } catch(e){}
+  updateHome();
+}
+
+/* ===================== 页面切换 ===================== */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0, 0);
+  if(id === 'pg-quiz') renderQuiz();
+  if(id === 'pg-card') renderCard();
+  if(id === 'pg-wrong') renderWrong();
+  if(id === 'pg-home') updateHome();
+}
+function updateHome(){
+  $('bankCount').textContent = BANK.length;
+  $('wrongCount').textContent = wrongBook.size;
+}
+
+/* ===================== 开始练习 ===================== */
+function start(mode){
+  let list;
+  if(mode === 'wrong'){
+    list = [...wrongBook];
+  } else {
+    list = BANK.map(q => q._key);
+    if(mode === 'random') shuffle(list);
+  }
+  if(list.length === 0){
+    alert(mode === 'wrong' ? '错题本是空的，先去练习吧！' : '题库为空，请先导入题目');
+    return;
+  }
+  state = {mode, list, idx:0, answers:{}, submitted:{}, active:true};
+  saveState();
+  showPage('pg-quiz');
+}
+function openCardFromHome(){
+  if(!state.active || !state.list || state.list.length === 0){
+    alert('请先开始一次练习');
+    return;
+  }
+  showPage('pg-card');
+}
+
+/* ===================== 渲染答题 ===================== */
+function renderQuiz(){
+  if(!state.active || !state.list || state.list.length === 0){
+    showPage('pg-home');
+    return;
+  }
+  const q = QMAP[state.list[state.idx]];
+  if(!q){ nextQ(); return; }
+
+  const titles = {order:'顺序练习', random:'随机练习', wrong:'只刷错题'};
+  $('q-title').textContent = titles[state.mode] || '练习';
+  $('q-bar').style.width = ((state.idx + 1) / state.list.length * 100) + '%';
+
+  $('q-sec').textContent = q.sec || '';
+  $('q-stem').textContent = q.id + '. ' + (q.stem || q.prompt || '');
+
+  // 阅读原文
+  const pb = $('q-passage');
+  if(q._passage){
+    pb.style.display = 'block';
+    pb.textContent = q._passage;
+  } else {
+    pb.style.display = 'none';
+  }
+
+  const optBox = $('q-options');
+  optBox.innerHTML = '';
+  const analysis = $('q-analysis');
+
+  // 写作题
+  if(q.type === 'writing'){
+    const ta = document.createElement('textarea');
+    ta.className = 'writing-area';
+    ta.placeholder = '请在此输入作文...（自动保存）';
+    ta.value = localStorage.getItem('eng_writing_' + q._key) || '';
+    ta.oninput = () => localStorage.setItem('eng_writing_' + q._key, ta.value);
+    optBox.appendChild(ta);
+    analysis.className = 'analysis show';
+    analysis.textContent = q.analysis || '';
+    $('q-submit').style.display = 'none';
+  } else {
+    $('q-submit').style.display = '';
+    const sel = state.answers[q._key];
+    const done = state.submitted[q._key];
+
+    q.options.forEach((opt, i) => {
+      const div = document.createElement('div');
+      div.className = 'option';
+      if(sel === i) div.classList.add('active');
+      if(done){
+        if(i === q.answer) div.classList.add('correct');
+        if(sel === i && i !== q.answer) div.classList.add('wrong');
+      }
+      div.innerHTML = '<span class="letter">' + String.fromCharCode(65 + i) + '</span><span class="opt-text">' + escapeHtml(opt) + '</span>';
+      div.onclick = () => {
+        if(done) return;
+        state.answers[q._key] = i;
+        saveState();
+        renderQuiz();
+      };
+      optBox.appendChild(div);
+    });
+
+    if(done){
+      analysis.className = 'analysis show';
+      analysis.textContent = '答案：' + String.fromCharCode(65 + q.answer) + '。' + (q.analysis || '');
+    } else {
+      analysis.className = 'analysis';
+      analysis.textContent = '';
+    }
+    $('q-submit').disabled = done || sel === undefined;
+    $('q-submit').textContent = done ? '已提交' : '提交';
+  }
+}
+
+/* ===================== 提交本题 ===================== */
+function submitQ(){
+  const q = QMAP[state.list[state.idx]];
+  if(!q || q.type === 'writing') return;
+  if(state.answers[q._key] === undefined){
+    alert('请先选择一个答案');
+    return;
+  }
+  state.submitted[q._key] = true;
+  if(state.answers[q._key] !== q.answer){
+    wrongBook.add(q._key);
+    saveWrong();
+  }
+  saveState();
+  updateHome();
+  renderQuiz();
+}
+
+/* ===================== 上一题 / 下一题 ===================== */
+function prevQ(){
+  if(state.idx > 0){ state.idx--; saveState(); renderQuiz(); }
+  else showPage('pg-home');
+}
+function nextQ(){
+  if(state.idx < state.list.length - 1){ state.idx++; saveState(); renderQuiz(); }
+  else finishExam();
+}
+
+/* ===================== 答题卡 ===================== */
+function renderCard(){
+  const grid = $('cardGrid');
+  grid.innerHTML = '';
+  state.list.forEach((k, i) => {
+    const q = QMAP[k];
+    if(!q) return;
+    const div = document.createElement('div');
+    div.className = 'card-num';
+    div.textContent = q.id;
+    const done = state.submitted[k];
+    const sel = state.answers[k];
+    if(done){
+      if(sel === q.answer) div.classList.add('right');
+      else div.classList.add('wrong');
+    } else if(sel !== undefined || q.type === 'writing'){
+      div.classList.add('done');
+    }
+    if(i === state.idx) div.classList.add('current');
+    div.onclick = () => {
+      state.idx = i;
+      saveState();
+      showPage('pg-quiz');
+    };
+    grid.appendChild(div);
+  });
+}
+
+/* ===================== 交卷 ===================== */
+function finishExam(){
+  let total = 0, correct = 0, wrong = 0, unanswered = 0, writing = 0;
+  state.list.forEach(k => {
+    const q = QMAP[k];
+    if(!q) return;
+    if(q.type === 'writing'){ writing++; return; }
+    total++;
+    if(state.submitted[k]){
+      if(state.answers[k] === q.answer) correct++;
+      else wrong++;
+    } else {
+      unanswered++;
+    }
+  });
+  const rate = total ? Math.round(correct / total * 100) : 0;
+  $('r-score').textContent = correct + ' / ' + total;
+  $('r-rate').textContent = '正确率 ' + rate + '%';
+  $('r-detail').innerHTML =
+    '<div>✅ 正确：' + correct + ' 题</div>' +
+    '<div>❌ 错误：' + wrong + ' 题</div>' +
+    '<div>⭕ 未答：' + unanswered + ' 题</div>' +
+    (writing ? '<div>✍️ 作文：' + writing + ' 题</div>' : '');
+  showPage('pg-result');
+}
+
+/* ===================== 错题本 ===================== */
+function renderWrong(){
+  const box = $('wrongList');
+  box.innerHTML = '';
+  if(wrongBook.size === 0){
+    box.innerHTML = '<div class="empty">错题本还是空的，继续加油！</div>';
+    return;
+  }
+  [...wrongBook].forEach(k => {
+    const q = QMAP[k];
+    if(!q) return;
+    const div = document.createElement('div');
+    div.className = 'wrong-item';
+    let ansText = '';
+    if(q.type !== 'writing' && q.options && q.options[q.answer] !== undefined){
+      ansText = '正确答案：' + String.fromCharCode(65 + q.answer) + '. ' + escapeHtml(q.options[q.answer]);
+    }
+    div.innerHTML =
+      '<div class="wrong-sec">' + escapeHtml(q.sec || '') + '</div>' +
+      '<div class="wrong-stem">' + q.id + '. ' + escapeHtml(q.stem || q.prompt || '') + '</div>' +
+      (ansText ? '<div class="wrong-answer">' + ansText + '</div>' : '') +
+      '<div class="wrong-analysis">' + escapeHtml(q.analysis || '') + '</div>';
+    const btn = document.createElement('button');
+    btn.className = 'mini-btn';
+    btn.textContent = '移出错题本';
+    btn.onclick = () => {
+      wrongBook.delete(k);
+      saveWrong();
+      updateHome();
+      renderWrong();
+    };
+    div.appendChild(btn);
+    box.appendChild(div);
+  });
+}
+function clearWrong(){
+  if(!confirm('确定要清空错题本吗？')) return;
+  wrongBook.clear();
+  saveWrong();
+  updateHome();
+  renderWrong();
+}
+
+/* ===================== 导入题库 ===================== */
+function doImport(){
+  const txt = $('importText').value.trim();
+  if(!txt) return alert('请先粘贴题库 JSON');
+  let data;
+  try {
+    data = JSON.parse(txt);
+    if(!Array.isArray(data)) throw new Error('题库必须是数组');
+    if(data.length === 0) throw new Error('题库为空');
+  } catch(e){
+    alert('导入失败：' + e.message);
+    return;
+  }
+  BANK = data;
+  rebuildKeys();
+  attachPassages();
+  saveBank();
+  wrongBook.clear();
+  saveWrong();
+  state = {mode:'order', list:[], idx:0, answers:{}, submitted:{}, active:false};
+  saveState();
+  updateHome();
+  alert('导入成功，共 ' + BANK.length + ' 题');
+  showPage('pg-home');
+}
+function appendImport(){
+  const txt = $('importText').value.trim();
+  if(!txt) return alert('请先粘贴题库 JSON');
+  let data;
+  try {
+    data = JSON.parse(txt);
+    if(!Array.isArray(data)) throw new Error('题库必须是数组');
+  } catch(e){
+    alert('导入失败：' + e.message);
+    return;
+  }
+  BANK = BANK.concat(data);
+  rebuildKeys();
+  attachPassages();
+  saveBank();
+  updateHome();
+  alert('追加成功，现在共 ' + BANK.length + ' 题');
+  showPage('pg-home');
+}
+function restoreDefault(){
+  if(!confirm('恢复默认题库会覆盖当前题库，确定吗？')) return;
+  BANK = JSON.parse(JSON.stringify(DEFAULT_BANK));
+  rebuildKeys();
+  attachPassages();
+  saveBank();
+  updateHome();
+  alert('已恢复默认题库');
+  showPage('pg-home');
+}
+
+/* ===================== 重置全部 ===================== */
+function resetAll(){
+  if(!confirm('确定要清空所有答题记录、错题本和作文吗？')) return;
+  wrongBook.clear();
+  saveWrong();
+  state = {mode:'order', list:[], idx:0, answers:{}, submitted:{}, active:false};
+  saveState();
+  Object.keys(localStorage).forEach(k => {
+    if(k.indexOf('eng_writing_') === 0) localStorage.removeItem(k);
+  });
+  updateHome();
+  alert('已重置');
+  showPage('pg-home');
+}
+
+/* ===================== 启动 ===================== */
+loadAll();
+renderQuiz();
+</script>
+</body>
+</html>
