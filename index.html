@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#2563eb">
+<title>专升本英语刷题</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#1f2937;-webkit-font-smoothing:antialiased}
+.page{display:none;flex-direction:column;min-height:100vh}
+.page.active{display:flex}
+header{position:sticky;top:0;z-index:10;background:#fff;padding:12px 14px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px}
+header .title{font-size:16px;font-weight:700;flex:1;text-align:center}
+header .sub{font-size:12px;color:#6b7280;text-align:center}
+.icon-btn{background:none;border:0;font-size:20px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#374151;cursor:pointer;flex:0 0 auto}
+.icon-btn:active{background:#f3f4f6}
+main{flex:1;padding:14px;max-width:720px;margin:0 auto;width:100%}
+footer{position:sticky;bottom:0;background:#fff;border-top:1px solid #e5e7eb;padding:10px 14px;display:flex;gap:10px}
+footer button{flex:1;padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:600;background:#2563eb;color:#fff;cursor:pointer}
+footer button.sec-btn{background:#e5e7eb;color:#111827}
+footer button:disabled{opacity:.45}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.big-btn{padding:18px 10px;border:0;border-radius:14px;background:#fff;color:#1f2937;font-size:15px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+.big-btn:active{transform:scale(.97)}
+.big-btn .ico{font-size:24px}
+.text-btn{margin-top:18px;width:100%;padding:12px;background:none;border:1px dashed #cbd5e1;border-radius:10px;color:#6b7280;font-size:13px;cursor:pointer}
+.hero{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border-radius:16px;padding:20px;margin-bottom:4px}
+.hero h1{margin:0 0 6px;font-size:20px}
+.hero p{margin:0;font-size:13px;opacity:.9}
+.progress-bar{height:5px;background:#e5e7eb}
+.progress-bar>i{display:block;height:100%;background:#2563eb;width:0;transition:.2s}
+.card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.sec{font-size:12px;color:#2563eb;font-weight:600;margin-bottom:8px}
+.stem{font-size:17px;line-height:1.6;margin-bottom:14px;white-space:pre-wrap}
+.passage{font-size:14px;line-height:1.7;color:#374151;background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:14px;white-space:pre-wrap;max-height:280px;overflow:auto;display:none;border-left:3px solid #2563eb}
+.option{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;cursor:pointer;background:#fff;transition:.15s}
+.option:active{transform:scale(.99)}
+.option.active{border-color:#2563eb;background:#eff6ff}
+.option.correct{border-color:#16a34a;background:#f0fdf4}
+.option.wrong{border-color:#dc2626;background:#fef2f2}
+.option .letter{width:24px;height:24px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 auto}
+.option.active .letter{background:#2563eb;color:#fff}
+.option.correct .letter{background:#16a34a;color:#fff}
+.option.wrong .letter{background:#dc2626;color:#fff}
+.option .opt-text{flex:1;line-height:1.5;font-size:15px}
+.analysis{margin-top:14px;padding:12px;background:#f9fafb;border-radius:10px;font-size:14px;line-height:1.6;display:none;border-left:3px solid #16a34a}
+.analysis.show{display:block}
+.writing-area{width:100%;min-height:200px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;line-height:1.6;font-family:inherit;resize:vertical}
+.legend{display:flex;gap:14px;font-size:12px;color:#6b7280;margin-bottom:12px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:12px;height:12px;border-radius:3px;background:#e5e7eb;display:inline-block}
+.dot.done{background:#93c5fd}
+.dot.right{background:#16a34a}
+.dot.wrong{background:#dc2626}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px}
+.card-num{padding:12px 0;border-radius:10px;background:#fff;border:1px solid #e5e7eb;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#374151}
+.card-num.done{background:#dbeafe;border-color:#93c5fd;color:#1d4ed8}
+.card-num.right{background:#dcfce7;border-color:#86efac;color:#15803d}
+.card-num.wrong{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}
+.card-num.current{outline:2px solid #2563eb;outline-offset:1px}
+.result-card{background:#fff;border-radius:16px;padding:26px 20px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.score{font-size:40px;font-weight:800;color:#2563eb;line-height:1.1}
+.rate{font-size:15px;color:#6b7280;margin-top:8px}
+.detail{margin-top:18px;font-size:14px;line-height:2;color:#374151;text-align:left;display:inline-block}
+.empty{text-align:center;color:#9ca3af;padding:40px 0;font-size:14px}
+.wrong-item{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.wrong-sec{font-size:11px;color:#2563eb;font-weight:600;margin-bottom:6px}
+.wrong-stem{font-size:15px;line-height:1.6;margin-bottom:8px}
+.wrong-answer{font-size:13px;color:#16a34a;font-weight:600;margin-bottom:6px}
+.wrong-analysis{font-size:13px;color:#6b7280;line-height:1.6;padding-top:6px;border-top:1px dashed #e5e7eb}
+.mini-btn{margin-top:10px;padding:6px 12px;border:0;border-radius:8px;background:#fee2e2;color:#b91c1c;font-size:12px;font-weight:600;cursor:pointer}
+.hint{font-size:13px;color:#6b7280;line-height:1.7;margin:0 0 10px}
+.code{background:#1f2937;color:#e5e7eb;padding:10px;border-radius:8px;font-size:11px;line-height:1.6;overflow:auto;margin:0 0 12px}
+#importText{width:100%;min-height:180px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:monospace;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- ========== 首页 ========== -->
+<section id="pg-home" class="page active">
+  <header><div class="title">专升本英语刷题</div></header>
+  <main>
+    <div class="hero">
+      <h1>📚 今天也要加油</h1>
+      <p>题库 <b id="bankCount">0</b> 题 · 错题本 <b id="wrongCount">0</b> 题</p>
+    </div>
+    <div class="grid">
+      <button class="big-btn" onclick="start('order')"><span class="ico">📖</span>顺序练习</button>
+      <button class="big-btn" onclick="start('random')"><span class="ico">🎲</span>随机练习</button>
+      <button class="big-btn" onclick="start('wrong')"><span class="ico">❌</span>只刷错题</button>
+      <button class="big-btn" onclick="openCardFromHome()"><span class="ico">📋</span>答题卡</button>
+      <button class="big-btn" onclick="showPage('pg-wrong')"><span class="ico">📕</span>错题本</button>
+      <button class="big-btn" onclick="showPage('pg-import')"><span class="ico">📥</span>导入题库</button>
+    </div>
+    <button class="text-btn" onclick="resetAll()">重置全部数据</button>
+  </main>
+</section>
+
+<!-- ========== 答题页 ========== -->
+<section id="pg-quiz" class="page">
+  <header>
+    <button class="icon-btn" onclick="showPage('pg-home')">←</button>
+    <div class="title" id="q-title">练习</div>
+    <button class="icon-btn" onclick="showPage('pg-card')">☰</button>
+  </header>
+  <div class="progress-bar"><i id="q-bar"></i></div>
+  <main>
+    <div class="card">
+      <div class="sec" id="q-sec"></div>
+      <div class="passage" id="q-passage"></div>
+      <div class="stem" id="q-stem"></div>
+      <div id="q-options"></div>
+      <div class="analysis" id="q-analysis"></div>
+    </div>
+  </main>
+  <footer>
+    <button class="sec-btn" onclick="prevQ()">上一题</button>
+    <button id="q-submit" onclick="submitQ()">提交</button>
+    <button class="sec-btn" onclick="nextQ()">下一题</button>
+  </footer>
+</section>
+
+<!-- ========== 答题卡 ========== -->
+<section id="pg-card" class="page">
+  <header>
+    <button class="icon-btn" onclick="showPage('pg-quiz')">←</button>
+    <div class="title">答题卡</div>
+    <button class="icon-btn" onclick="finishExam()" style="font-size:13px;width:auto;padding:0 8px">交卷</button>
+  </header>
+  <main>
+    <div class="legend">
+      <span><i class="dot done"></i>已答</span>
+      <span><i class="dot right"></i>正确</span>
+      <span><i class="dot wrong"></i>错误</span>
+      <span><i class="dot"></i>未答</span>
+    </div>
+    <div class="card-grid" id="cardGrid"></div>
+  </main>
+</section>
+
+<!-- ========== 结果页 ========== -->
+<section id="pg-result" class="page">
+  <header><div class="title">练习结果</div></header>
+  <main>
+    <div class="result-card">
+      <div class="score" id="r-score">0 / 0</div>
+      <div class="rate" id="r-rate">正确率 0%</div>
+      <div class="detail" id="r-detail"></div>
+    </div>
+    <div class="grid">
+      <button class="big-btn" onclick="start('wrong')"><span class="ico">❌</span>只刷错题</button>
+      <button class="big-btn" onclick="start('order')"><span class="ico">🔁</span>重新练习</button>
+    </div>
+    <button class="text-btn" onclick="showPage('pg-home')">回到首页</button>
+  </main>
+</section>
+
+<!-- ========== 错题本 ========== -->
+<section id="pg-wrong" class="page">
+  <header>
+    <button class="icon-btn" onclick="showPage('pg-home')">←</button>
+    <div class="title">错题本</div>
+    <button class="icon-btn" onclick="clearWrong()" style="font-size:13px;width:auto;padding:0 8px">清空</button>
+  </header>
+  <main><div id="wrongList"></div></main>
+</section>
+
+<!-- ========== 导入题库 ========== -->
+<section id="pg-import" class="page">
+  <header>
+    <button class="icon-btn" onclick="showPage('pg-home')">←</button>
+    <div class="title">导入题库</div>
+    <div style="width:36px"></div>
+  </header>
+  <main>
+    <p class="hint">把题目 JSON 粘贴到下面。格式示例：</p>
+    <pre class="code">[
+  {"id":1,"sec":"I. 语音","stem":"题干","options":["A","B","C","D"],"answer":1,"analysis":"解析"},
+  {"id":2,"sec":"II. 词汇","stem":"题干","options":["A","B","C","D"],"answer":0,"analysis":"解析"}
+]</pre>
+    <textarea id="importText" placeholder="粘贴 JSON 题库..."></textarea>
+    <div class="grid">
+      <button class="big-btn" onclick="doImport()"><span class="ico">📥</span>导入并覆盖</button>
+      <button class="big-btn" onclick="appendImport()"><span class="ico">➕</span>追加到现有</button>
+    </div>
+    <button class="text-btn" onclick="restoreDefault()">恢复默认题库</button>
+  </main>
+</section>
+
+<script>
+/* ===================== 默认题库（61题） ===================== */
+const DEFAULT_BANK = [
+{id:1,sec:'I. 语音',stem:'选出划线部分发音不同的一项',options:['arise','brick','pride','child'],answer:1,analysis:'B. brick 中 i 发 /ɪ/，其余发 /aɪ/。'},
+{id:2,sec:'I. 语音',stem:'选出划线部分发音不同的一项',options:['head','beam','leaf','heat'],answer:0,analysis:'A. head 中 ea 发 /e/，其余发 /iː/。'},
+{id:3,sec:'I. 语音',stem:'选出划线部分发音不同的一项',options:['cow','how','low','now'],answer:2,analysis:'C. low 中 ow 发 /əʊ/，其余发 /aʊ/。'},
+{id:4,sec:'I. 语音',stem:'选出划线部分发音不同的一项',options:['tooth','smooth','wealth','truth'],answer:1,analysis:'B. smooth 中 th 发 /ð/，其余发 /θ/。'},
+{id:5,sec:'I. 语音',stem:'选出划线部分发音不同的一项',options:['answer','absence','escape','disease'],answer:3,analysis:'D. disease 中 s 发 /z/，其余发 /s/。'},
+
+{id:6,sec:'II. 词汇与结构',stem:"Let's celebrate the victory of our team in the sports meeting, ____.",options:['do you','do we','will you','shall we'],answer:3,analysis:"以 Let's 开头的祈使句，反义疑问用 shall we。"},
+{id:7,sec:'II. 词汇与结构',stem:'____ is late for the examination will not be allowed to enter the classroom.',options:['Whoever','Who','Whom','No matter who'],answer:0,analysis:'whoever 引导主语从句并在从句中作主语。'},
+{id:8,sec:'II. 词汇与结构',stem:'____ the project on time, they had to work late into the night for several days.',options:['Complete','Completed','To complete','Completing'],answer:2,analysis:'不定式作目的状语。'},
+{id:9,sec:'II. 词汇与结构',stem:"Where do you usually have your hair ____? At the barber's near the grocery.",options:['cut','be cut','cutting','to cut'],answer:0,analysis:'have sth. done 固定用法。'},
+{id:10,sec:'II. 词汇与结构',stem:'In the digital era, it is very important not to ____ personal information on the Internet.',options:['try out','give out','pick out','keep out'],answer:1,analysis:'give out 泄露。'},
+{id:11,sec:'II. 词汇与结构',stem:'With more colleagues to help you with the task, you will be relieved ____ pressure.',options:['by','of','against','to'],answer:1,analysis:'relieve sb. of sth. 减轻某人的压力。'},
+{id:12,sec:'II. 词汇与结构',stem:"I cannot afford a dinner in that fancy restaurant. Let's try a ____ expensive one.",options:['most','more','least','less'],answer:3,analysis:'less expensive 更便宜的。'},
+{id:13,sec:'II. 词汇与结构',stem:'Writing poetry about country life ____ her from the boredom of everyday life.',options:['reminded','benefited','liberated','persuaded'],answer:2,analysis:'liberate sb. from sth. 使某人从……中解脱。'},
+{id:14,sec:'II. 词汇与结构',stem:'____ there was no obvious evidence against him, most people thought he was guilty.',options:['Unless','If','While','Because'],answer:2,analysis:'while 表示“尽管”。'},
+{id:15,sec:'II. 词汇与结构',stem:'He ____ at the company for five years before he was promoted to a management position.',options:['had worked','has worked','was working','will have worked'],answer:0,analysis:'过去完成时表示过去的过去。'},
+{id:16,sec:'II. 词汇与结构',stem:'The decision finally came from the manager ____ all staff should work extra hours.',options:['when','which','what','that'],answer:3,analysis:'that 引导同位语从句。'},
+{id:17,sec:'II. 词汇与结构',stem:"Paul's poor performance in the interview was a big ____ to his mother, who had wanted her son to study at Harvard University.",options:['act','blow','sign','air'],answer:1,analysis:'a big blow to sb. 对某人的沉重打击。'},
+{id:18,sec:'II. 词汇与结构',stem:'She is the only one in the office ____ can speak English fluently.',options:['which','whose','where','who'],answer:3,analysis:'先行词指人，定语从句用 who/that。'},
+{id:19,sec:'II. 词汇与结构',stem:'With the help of the ____ glasses, people now can have a virtual tour of the museums around the world while sitting at home.',options:['smart','neat','mobile','old'],answer:0,analysis:'smart glasses 智能眼镜。'},
+{id:20,sec:'II. 词汇与结构',stem:'The doctor strongly recommends that the patient ____ a strict diet to keep healthy.',options:['following','followed','follow','to follow'],answer:2,analysis:'recommend 后宾语从句用 (should) do。'},
+
+{id:21,sec:'III. 完形填空',stem:'But one story in particular stands ____.',options:['up','out','on','by'],answer:1,analysis:'stand out 突出。'},
+{id:22,sec:'III. 完形填空',stem:'"I taught Jerushi in 2013," Mrs Bishop ____.',options:['argues','recalls','suggests','repeats'],answer:1,analysis:'recall 回忆起。'},
+{id:23,sec:'III. 完形填空',stem:'Her parents had ____ behind in her home country.',options:['gone','hidden','stayed','looked'],answer:2,analysis:'stay behind 留下来。'},
+{id:24,sec:'III. 完形填空',stem:'Mrs Bishop supported Jerushi during Year 6 and encouraged her love of ____.',options:['sport','maths','music','art'],answer:3,analysis:'下文提到 landscape artwork，故为 art。'},
+{id:25,sec:'III. 完形填空',stem:'Jerushi studied in Australia for ____ few years.',options:['another','too','every','so'],answer:0,analysis:'another few years 又几年。'},
+{id:26,sec:'III. 完形填空',stem:'but Mrs Bishop lost touch with her ____ she went back home.',options:['although','unless','once','until'],answer:2,analysis:'once 一……就。'},
+{id:27,sec:'III. 完形填空',stem:'Then, a few years ago, Jerushi ____ out to Mrs Bishop.',options:['reached','checked','called','moved'],answer:0,analysis:'reach out to sb. 与某人联系。'},
+{id:28,sec:'III. 完形填空',stem:"At the time, Jerushi's painting was ____ above Mrs Bishop's desk.",options:['installing','hanging','locating','ranking'],answer:1,analysis:'hang 悬挂。'},
+{id:29,sec:'III. 完形填空',stem:'proof that Mrs Bishop had ____ forgotten her.',options:['since','ever','just','never'],answer:3,analysis:'never forgotten 从未忘记。'},
+{id:30,sec:'III. 完形填空',stem:'"Jerushi told me she was now studying to ____ a teacher just like me,"',options:['become','train','find','respect'],answer:0,analysis:'become a teacher 成为一名老师。'},
+{id:31,sec:'III. 完形填空',stem:"you often don't realise the kind of ____ you can have.",options:['duty','impact','right','hope'],answer:1,analysis:'impact 影响。'},
+{id:32,sec:'III. 完形填空',stem:'who remembers ____ her own teacher a letter five years ago',options:['lending','promising','writing','ordering'],answer:2,analysis:'write a letter 写信。'},
+{id:33,sec:'III. 完形填空',stem:'with a ____ message',options:['similar','previous','secret','vague'],answer:0,analysis:'similar message 类似的信息。'},
+{id:34,sec:'III. 完形填空',stem:'"His passion ____ teaching really inspired me,"',options:['by','among','for','without'],answer:2,analysis:'passion for sth. 对……的热情。'},
+{id:35,sec:'III. 完形填空',stem:'"When parents thank me, I ____ them, \'No, thank you for allo...\'"',options:['ask','warn','advise','tell'],answer:3,analysis:'tell sb. 告诉某人。'},
+
+{id:36,sec:'IV. 阅读理解 Passage One',type:'choice',passage:"Last week, a friend from Colorado, who I first met in Thailand, came into town for his sister's graduation. He called me and we met up in a bar. It was one of the best nights of the summer.\n\nWe retold stories from our time in Thailand, drank a couple beers, and just reflected in the presence of one another. And the best part: he was doing well, succeeding in life while pursuing his dreams.\n\nOn my way home from seeing him on his last night in town, I got a little depressed. I just forgot how much fun I had with him and why he made my Thailand experience so awesome. And that of course got me missing all my friends: the ones still in Santa Clara, the ones following their music careers, the ones living in Portland that I have just been too dumb to contact. I have just been so caught up in writing, studying for the GRE, lounging about my house, that I haven't made the effort that I certainly should have.\n\nSometimes, we get so absorbed in our own lives that we forget what makes our lives worth living. Humans are social creatures. It is in our DNA. Evolutionary psychologists suggest that because we relied upon social groups in primitive times to survive, we have a negative biological reaction to loneliness today.\n\nSo go out there and contact a friend you haven't talked to for a while. If nothing else, just check in to see how they're doing. Because even if you haven't spoken for a while, I'm certain that they are thinking of you.",stem:'What did the author and his friend do in the bar?',options:['They recalled their time in Thailand.','They shared experiences in Colorado.','They talked about the joy of graduation.','They exchanged views on career success.'],answer:0,analysis:'答案 A。第一段和第二段提到他们回忆在泰国的时光。'},
+{id:37,sec:'IV. 阅读理解 Passage One',type:'choice',stem:'What can be inferred about the author from Paragraph 3?',options:['He has achieved success in writing.','He has got a high score on the GRE.','He does not enjoy his life in Portland.','He regrets not having seen his friends.'],answer:3,analysis:'答案 D。作者后悔因忙碌而疏于联系朋友。'},
+{id:38,sec:'IV. 阅读理解 Passage One',type:'choice',stem:"What is a cause of humans' negative biological reaction to loneliness?",options:['The requirement of family groups.','The dependence on social support.','The destruction of the environment.','The improvement of living conditions.'],answer:1,analysis:'答案 B。原始时代依赖社会群体生存。'},
+{id:39,sec:'IV. 阅读理解 Passage One',type:'choice',stem:'What does the author suggest in the passage?',options:['Offering timely help to friends.','Keeping in contact with friends.','Relying on friends for social success.',"Caring for friends' career development."],answer:1,analysis:'答案 B。最后一段建议联系朋友。'},
+
+{id:40,sec:'IV. 阅读理解 Passage Two',type:'choice',passage:"Seagulls (海鸥) don't just steal food from tourists; they also make quite a mess on the boats of the Australian National Maritime Museum. Seagull droppings stain the boats, causing the museum staff to spend many hours cleaning up the mess left by the seagulls.\n\nAfter many failed attempts at keeping the annoying seagulls away, the staff had a brilliant idea. Inspired by the method used at various airports to drive away wildlife, they sought out the Australian Dog Working Centre and adopted Bailey. The three-year-old dog was appointed the new position of Assistant Director of Seagulls and put to work.\n\nThe highlight of Bailey's morning is chasing the seagulls away from the boats. For the first few weeks, Bailey was a little too enthusiastic about his new role and managed to jump into the water during the pursuit of seagulls. But it wasn't long before he was fitted with a new work uniform—a bright yellow life vest that keeps him floating on water. Bailey even has a special staff ID with his photo and the title of his important position. He has had to get familiar with the museum's waterfront, which he patrols (巡查) frequently. This is especially important at night when there is no human activity around to scare the seagulls off.\n\nThe museum staff members are all very fond of Bailey, making sure to give him lots of playtime, walks and affection. He is very well taken care of, with visits to the local animal doctor for grooming (梳毛) scheduled every two weeks.\n\nWhen he is clocked on, Bailey prefers not to be disturbed so he can focus on his job. However, when he is not working, the museum encourages all visitors to come to say",stem:'What troubles the Australian National Maritime Museum?',options:['Shortage of staff.','Pollution of water.','Bird droppings.','Long workdays.'],answer:2,analysis:'答案 C。海鸥排泄物弄脏船。'},
+{id:41,sec:'IV. 阅读理解 Passage Two',type:'choice',stem:"What is Bailey's job at the museum?",options:['To catch thieves.','To inspect visitors.','To perform on the boats.','To chase away seagulls.'],answer:3,analysis:'答案 D。驱赶海鸥。'},
+{id:42,sec:'IV. 阅读理解 Passage Two',type:'choice',stem:'Which of the following is true about Bailey?',options:['He receives regular body care.','He is often disturbed by tourists.','He enjoys working instead of playing.','He becomes the symbol of the museum.'],answer:0,analysis:'答案 A。每两周由动物医生梳毛。'},
+{id:43,sec:'IV. 阅读理解 Passage Two',type:'choice',stem:'Which of the following is closest in meaning to the underlined expression "clocked on" in the last paragraph?',options:['Off duty.','In bed.','Under control.','At work.'],answer:3,analysis:'答案 D。clock on 打卡上班，即 at work。'},
+
+{id:44,sec:'IV. 阅读理解 Passage Three',type:'choice',passage:"The recent wildfire in Alberta, Canada, has already burned through 600 square miles of land, and 20% of houses in the city of Fort McMurray; all its 88,000 residents have left their homes. But how do you put out fires this big and intense?\n\nWind, fuel and the slope (坡度) of the land are three vital factors. You can't do very much about the first one. The firefighters will be paying attention to weather conditions. In an ideal world, the wind would force the flames back on to ground that has already been burned.\n\nFuel—mainly the trees—can be managed in several ways, such as bulldozing (铲除) it out of the way or starting controlled fires to burn it off so it can't feed the main fire.\n\nThe slope of the land can also help. Fires burn much more aggressively going uphill than they do downhill. You don't try to fight a fire going uphill. The firefighters will be looking very carefully how they arrange their personnel and equipment on a downhill side of a slope. In a fire that is relatively small and moving downhill, you can launch a direct attack, physically beating the flames out with special tools. You would come in behind the fire, so you're not face to face with flames coming towards you.\n\nIn addition, fire can spread a large distance away from the fire-front by burning embers (余火) carried on the wind, which then start other fires elsewhere. You can actively work on preventing parts of the fire going in certain directions. But this requires resources, such as water bombers—planes that can dump vast quantities of water. They aren't just flying over the top of the fire and releasing water. They usually wet the fuel ahead of the fire or along its sides to stop the spread of the fire.",stem:'Which factor is mainly talked about in Paragraph 2?',options:['Fuel.','Wind.','Slope.','Flame.'],answer:1,analysis:'答案 B。第二段主要谈风。'},
+{id:45,sec:'IV. 阅读理解 Passage Three',type:'choice',stem:'Why should trees be bulldozed in firefighting?',options:['To put out a controlled fire.','To help the victims escape.','To prevent fires from spreading.','To make way for firefighters.'],answer:2,analysis:'答案 C。清除燃料防止火势蔓延。'},
+{id:46,sec:'IV. 阅读理解 Passage Three',type:'choice',stem:'When can firefighters directly attack a fire?',options:['When it is small and moving downhill.','When it is big and moving sideways.','When water bombers are available.','When the trees ahead of it are wet.'],answer:0,analysis:'答案 A。相对较小且向下坡蔓延时。'},
+{id:47,sec:'IV. 阅读理解 Passage Three',type:'choice',stem:'Which of the following is closest in meaning to the underlined word "dump" in the last paragraph?',options:['Drop.','Boil.','Absorb.','Produce.'],answer:0,analysis:'答案 A。dump 倾倒。'},
+
+{id:48,sec:'IV. 阅读理解 Passage Four',type:'choice',passage:"Pittsburgh Arlington, an elementary school in the state of Pennsylvania, is battling chronic absence from school with a community-centered approach that combines care, connection, and practical support. Over half of the school's 353 students frequently miss classes. Many of these students face barriers like a lack of transportation, which the school district does not provide for those living less than a mile and a half away.\n\nTo tackle this issue, the school worked with the Brashear Association, a local nonprofit, to launch the nanas (保姆) program. This initiative provides a personal touch, where nanas make cheerful morning wakeup calls to families, often ending the conversation with a heartfelt \"I love you.\" In addition, the program offers free bus rides to and from school, ensuring that children who might otherwise miss school can attend regularly.\n\nThe program currently serves 36 children daily, but demand is high, with about 20 students still on the waitlist. Principal Crystal Caldwell wishes there were more resources to expand the service. Meanwhile, the school is also working on other solutions, like paying staff to walk students home and working together with a nearby church to offer before-school care.\n\nThese efforts are part of a broader initiative aiming at making school a friendly and desirable place for students. This includes working with local arts organizations to create interesting programs and offering regular motivational talks to encourage attendance (出勤). These combined efforts reflect a deep understanding that the causes are complex and varied, requiring the entire community's involvement to address them effectively.\n\nTiffini Gorman, director of partnerships at the nonprofit A+ Schools, emphasizes the importance of collective responsibility in ensuring that every child has the support they need to succeed. The school's approach highlights the significance of community involvement in creating a positive and supportive environment for students.",stem:'What problem is Pittsburgh Arlington trying to solve?',options:['Outdated school facilities.','Little support for teachers.','Frequent absence of students.','Lack of money for programs.'],answer:2,analysis:'答案 C。学生长期缺勤。'},
+{id:49,sec:'IV. 阅读理解 Passage Four',type:'choice',stem:'What measure does the nanas program take to help students come to school?',options:['Shortening school days.','Giving financial rewards.','Offering free bus rides.','Providing morning calls.'],answer:2,analysis:'答案 C。提供免费巴士接送。'},
+{id:50,sec:'IV. 阅读理解 Passage Four',type:'choice',stem:'What does the underlined word "This" in Paragraph 4 refer to?',options:['A quicker solution.','A broader initiative.','Collective responsibility.','Community involvement.'],answer:1,analysis:'答案 B。指代 a broader initiative。'},
+{id:51,sec:'IV. 阅读理解 Passage Four',type:'choice',stem:'What would be the best title for this passage?',options:['Nanas help find a new approach to teaching art','Pittsburgh Arlington: the rebirth of an old school','Students drop out of school: a big problem today','Working together to get kids back into the classroom'],answer:3,analysis:'答案 D。共同努力让孩子重返课堂。'},
+
+{id:52,sec:'IV. 阅读理解 Passage Five',type:'choice',passage:"Counting butterflies can reduce anxiety and boost a sense of connection with nature, a study has found. Researchers surveyed participants in the Big Butterfly Count in 2022, in which wildlife charity Butterfly Conservation encouraged people to spend 15 minutes outside counting butterflies to help scientists track how the insects were faring. Surveys completed by 382 people before and after the three-week count period revealed a 9 per cent reduction in anxiety among participants, and a greater sense of connection with nature, as well as noticing butterflies and nature more.\n\nFurther surveys completed by 345 people, which were sent five weeks after the count, did not find nature connectedness and reduced anxiety had been maintained. But they revealed an increase in general wellbeing compared with before the project. The research, published in the journal Biological Conservation, was carried out by Butterfly Conservation and the University of Derby.\n\nThe surveys revealed people had a range of positive and negative emotions associated with taking part, ranging from joy and fascination to sadness and concern about declining insects. Richard Fox, head of science at Butterfly Conservation, said, \"This study is the first to prove that the simple act of looking for and counting butterflies leads to a decrease in anxiety. The results suggest that citizen science projects can play a part in improving people's mental health, as well as gathering important data on how butterflies are faring to inform our conservation work.\"\n\nCarly Butler, lead researcher on the study, said the benefits of reduced anxiety and stronger connectedness with nature were the same whether people just carried out one 15-minute count or did so multiple times. Dr Butler added that participants felt motivated to help butterflies and nature by doing things such as making their gardens butterfly-friendly.",stem:'Why were people encouraged to participate in the Big Butterfly Count?',options:['To understand anxiety.','To connect with others.','To find new butterfly species.','To help with a science project.'],answer:3,analysis:'答案 D。帮助科学家追踪昆虫状况。'},
+{id:53,sec:'IV. 阅读理解 Passage Five',type:'choice',stem:'What did further surveys find?',options:['People had higher general wellbeing.','People felt more excited about wildlife.','People were closer to the natural world.','People maintained reduced anxiety.'],answer:0,analysis:'答案 A。总体幸福感提高。'},
+{id:54,sec:'IV. 阅读理解 Passage Five',type:'choice',stem:'What were people concerned about according to the surveys?',options:['Their inability to gather enough data.','The decrease in butterfly populations.','Their anxiety in doing the surveys.','The duration of the counting task.'],answer:1,analysis:'答案 B。对昆虫数量减少的担忧。'},
+{id:55,sec:'IV. 阅读理解 Passage Five',type:'choice',stem:'What can people do to help butterflies and nature according to the last paragraph?',options:['Expand their butterfly collections.','Turn butterfly counting into a routine.','Make their gardens fit for butterflies.','Persuade their friends to help butterflies.'],answer:2,analysis:'答案 C。让花园适合蝴蝶生存。'},
+
+{id:56,sec:'V. 日常对话',type:'choice',passage:"Nick: Hi, Ryan. Do you know when the test results will come out?\nRyan: 56\nNick: I'm anxious to see how I did. 57\nRyan: I'm not that nervous. 58\nNick: I think most of the test was pretty easy, but some of the questions were tricky.\nRyan: 59 That won't do you any good.\nNick: How could you stay so calm all the time?\nRyan: 60\nNick: You're lucky. I worry all the time.",stem:'56. Ryan: ____',options:["You'd better prepare for the test.","Try not to worry about it too much.","The professor didn't blame you.","I have no idea.","I don't think the test was hard.","It's just who I am.","I barely finished the test in time.","I need to study harder."],answer:3,analysis:'答案 D。I have no idea.'},
+{id:57,sec:'V. 日常对话',type:'choice',stem:"57. Nick: I'm anxious to see how I did. ____",options:["You'd better prepare for the test.","Try not to worry about it too much.","The professor didn't blame you.","I have no idea.","I don't think the test was hard.","It's just who I am.","I barely finished the test in time.","I need to study harder."],answer:6,analysis:'答案 G。I barely finished the test in time.'},
+{id:58,se
